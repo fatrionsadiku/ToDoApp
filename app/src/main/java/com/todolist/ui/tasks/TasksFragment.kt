@@ -6,15 +6,18 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.todolist.data.SortOrder
 import com.todolist.data.Task
 import com.todolist.mvvmtodo.R
 import com.todolist.mvvmtodo.databinding.FragmentTasksBinding
 import com.todolist.util.onQueryTextChanged
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -64,6 +67,21 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
 
         viewModel.tasks.observe(viewLifecycleOwner){
             taskAdapter.submitList(it)
+        }
+
+
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.taskEvent.collect { event ->
+                when(event){
+                    is TasksViewModel.TasksEvent.ShowUndoDeleteTaskMessage -> {
+                       Snackbar.make(requireView(),"Task Deleted Succesfully", Snackbar.LENGTH_LONG)
+                           .setAction("Undo") {
+                                viewModel.onUndoDeleteClick(event.task)
+                           }.show()
+                    }
+                }
+
+            }
         }
 
         setHasOptionsMenu(true)
