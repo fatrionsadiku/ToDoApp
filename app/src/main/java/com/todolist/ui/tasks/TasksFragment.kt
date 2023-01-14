@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +16,7 @@ import com.todolist.data.SortOrder
 import com.todolist.data.Task
 import com.todolist.mvvmtodo.R
 import com.todolist.mvvmtodo.databinding.FragmentTasksBinding
+import com.todolist.util.exhaustive
 import com.todolist.util.onQueryTextChanged
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -63,6 +65,10 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
                     viewModel.onTaskSwipe(task)
                 }
             }).attachToRecyclerView(recyclerViewTasks)
+
+            fab.setOnClickListener {
+                viewModel.onAddNewTaskClick()
+            }
         }
 
         viewModel.tasks.observe(viewLifecycleOwner){
@@ -79,7 +85,15 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
                                 viewModel.onUndoDeleteClick(event.task)
                            }.show()
                     }
-                }
+                    is TasksViewModel.TasksEvent.NavigateToAddTaskScreen -> {
+                        val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment()
+                        findNavController().navigate(action)
+                    }
+                    is TasksViewModel.TasksEvent.NavigateToAddedTaskScreen -> {
+                        val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(event.task)
+                        findNavController().navigate(action)
+                    }
+                }.exhaustive
 
             }
         }
