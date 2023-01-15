@@ -7,9 +7,12 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.todolist.mvvmtodo.databinding.FragmentAddEditTaskBinding
 import com.todolist.mvvmtodo.databinding.FragmentTasksBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddEditTaskFragment : Fragment() {
     private val viewModel : AddEditTaskViewModel by viewModels()
     lateinit var binding : FragmentAddEditTaskBinding

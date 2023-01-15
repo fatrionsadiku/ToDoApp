@@ -93,7 +93,7 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
                         val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(event.task)
                         findNavController().navigate(action)
                     }
-                }.exhaustive
+                }
 
             }
         }
