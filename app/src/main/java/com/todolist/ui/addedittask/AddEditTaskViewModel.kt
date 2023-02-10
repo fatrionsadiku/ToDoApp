@@ -25,6 +25,10 @@ class AddEditTaskViewModel @ViewModelInject constructor(
         state.set("taskImportance", value)
     }
 
+    fun onSaveClick() {
+
+    }
+
 
 
 }
