@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -71,6 +72,11 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
             }
         }
 
+        setFragmentResultListener("add_edit_request"){ _, bundle ->
+            val result = bundle.getInt("add_edit_result")
+            viewModel.onAddEditResult(result)
+        }
+
         viewModel.tasks.observe(viewLifecycleOwner){
             taskAdapter.submitList(it)
         }
@@ -92,6 +98,9 @@ class TasksFragment : Fragment(), TasksAdapter.OnItemClickListener {
                     is TasksViewModel.TasksEvent.NavigateToAddedTaskScreen -> {
                         val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(event.task, "Edit current task")
                         findNavController().navigate(action)
+                    }
+                    is TasksViewModel.TasksEvent.ShowTaskSavedConfirmationMessage -> {
+                        Snackbar.make(requireView(), event.msg, Snackbar.LENGTH_SHORT).show()
                     }
                 }
 

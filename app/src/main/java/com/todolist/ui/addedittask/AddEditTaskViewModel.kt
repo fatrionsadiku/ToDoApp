@@ -1,11 +1,20 @@
 package com.todolist.ui.addedittask
 
+import android.app.Application
+import android.widget.TextView
 import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.todolist.data.Task
 import com.todolist.data.TaskDao
+import com.todolist.ui.ADD_TASK_RESULT_OK
+import com.todolist.ui.EDIT_TASK_RESULT_OK
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 class AddEditTaskViewModel @ViewModelInject constructor(
     private val taskDao: TaskDao,
@@ -14,7 +23,7 @@ class AddEditTaskViewModel @ViewModelInject constructor(
 
     val task = state.get<Task>("task")
 
-    var taskName = state.get<String>("taskName") ?: task?.name ?: "Empty Task"
+    var taskName = state.get<String>("taskName") ?: task?.name ?: ""
     set(value) {
         field = value
         state.set("taskName", value)
@@ -25,10 +34,39 @@ class AddEditTaskViewModel @ViewModelInject constructor(
         state.set("taskImportance", value)
     }
 
-    fun onSaveClick() {
+    private val addEditTaskEventChannel = Channel<AddEditTaskEvents>()
+    val addEditTaskEvents = addEditTaskEventChannel.receiveAsFlow()
 
+    fun onSaveClick() {
+        if (taskName.isBlank()) {
+            showInvalidInputMessage("Name cannot be empty")
+            return
+        }
+        if (task != null) {
+            val updatedTask = task.copy(name = taskName, important = taskImportance)
+            updatedTask(updatedTask)
+        } else {
+            val newTask = Task(name = taskName, important = taskImportance)
+            createTask(newTask)
+        }
     }
 
+    private fun showInvalidInputMessage(text: String) = viewModelScope.launch {
+        addEditTaskEventChannel.send(AddEditTaskEvents.ShowInvalidInputMessage(text))
+    }
 
+    private fun createTask(newTask: Task) = viewModelScope.launch {
+        taskDao.insert(newTask)
+        addEditTaskEventChannel.send(AddEditTaskEvents.NavigateBackWithResult(ADD_TASK_RESULT_OK))
+    }
 
+    private fun updatedTask(updatedTask: Task) = viewModelScope.launch {
+        taskDao.update(updatedTask)
+        addEditTaskEventChannel.send(AddEditTaskEvents.NavigateBackWithResult(EDIT_TASK_RESULT_OK))
+    }
+
+    sealed class AddEditTaskEvents {
+        data class ShowInvalidInputMessage(val msg : String) : AddEditTaskEvents()
+        data class NavigateBackWithResult(val result : Int) : AddEditTaskEvents()
+    }
 }

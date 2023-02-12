@@ -7,6 +7,8 @@ import com.todolist.data.PreferencesManager
 import com.todolist.data.SortOrder
 import com.todolist.data.Task
 import com.todolist.data.TaskDao
+import com.todolist.ui.ADD_TASK_RESULT_OK
+import com.todolist.ui.EDIT_TASK_RESULT_OK
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -67,7 +69,19 @@ class TasksViewModel @ViewModelInject constructor(
         taskEventChannel.send(TasksEvent.NavigateToAddTaskScreen)
     }
 
+    fun onAddEditResult(result: Int) {
+        when(result){
+            ADD_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task added succesfully")
+            EDIT_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task edited succesfully")
+        }
+    }
+
+    private fun showTaskSavedConfirmationMessage(message: String) = viewModelScope.launch {
+        taskEventChannel.send(TasksEvent.ShowTaskSavedConfirmationMessage(message))
+    }
+
     sealed class TasksEvent {
+        data class ShowTaskSavedConfirmationMessage(val msg : String) : TasksEvent()
         data class ShowUndoDeleteTaskMessage(val task: Task) : TasksEvent()
         data class NavigateToAddedTaskScreen(val task: Task) : TasksEvent()
         object NavigateToAddTaskScreen : TasksEvent()
