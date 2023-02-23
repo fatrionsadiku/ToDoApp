@@ -1,2 +1,2 @@
-# MVVM To-Do List App with Flow and Architecture Components
+# MVVM To-Do List App
 
